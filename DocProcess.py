@@ -10,6 +10,7 @@ def ReadDocx(str):
     Text = ""#文档正文
     #获取标题
     Document_num_index=0;
+    #从文章开始能够找到的所有居中的段落都算标题
     for i,paragraph in enumerate(document.paragraphs):
         if(paragraph.alignment==WD_ALIGN_PARAGRAPH.CENTER):
             Title+=paragraph.text+" "
@@ -17,6 +18,7 @@ def ReadDocx(str):
         else:
             break
     #获取文档编号
+    #按照安全总管系列的文章来说标题的最后一部分应该就是文章编号
     Doucment_num=document.paragraphs[Document_num_index].text
 
     #文档正文
@@ -30,7 +32,7 @@ def ReadDocx(str):
         if(i<=Document_num_index):
             continue
         else:#进入正文
-            if(paragraph.runs[0].bold):#是章节标题
+            if(paragraph.runs[0].bold):#加粗是章节标题
                 Sections.append(section)
                 section=[]
                 section.append(paragraph.text)
