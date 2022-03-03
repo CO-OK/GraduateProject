@@ -1,17 +1,19 @@
 import  sys
-from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction
-from  PyQt5 import uic
+from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QVBoxLayout,QFileDialog
+from PyQt5 import uic
 from docx import Document
 
-class AppDemo(QMainWindow):
+class AppDemo(QWidget):
     def __init__(self):
         super(AppDemo, self).__init__()
-        uic.loadUi('Demo.ui',self)
+        self.setWindowTitle("SmartAss")
 
-        self.MainBtn.clicked.connect(self.printValue)
+        self.fileSystem=QFileSystemModel()
+        self.fileSystem.setRootPath("/")
+
 
         #工具栏
-        self.menuBar=self.menuBar()
+        self.menuBar=QMenuBar(self)
         fileMenu=self.menuBar.addMenu('文件')
 
         #退出动作
@@ -27,15 +29,32 @@ class AppDemo(QMainWindow):
         fileMenu.addAction(select_action)
         fileMenu.addAction(exit_action)
 
+        #textbrowser
+        textBrowser=QTextBrowser(self)
+        self.MainTextBrowser=textBrowser
+        self.MainTextBrowser.setGeometry(0,25,300,995)
+
+
+        #布局
+        layout=QVBoxLayout()
+        layout.addWidget(self.menuBar)
+        layout.addWidget(self.MainTextBrowser)
+        self.setLayout(layout)
+
+
+
     def OpenFile(self,path):
         """
-
         :param path: 文件路径
         :return: 目前只返回文本格式
         """
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
+                                                  "All Files (*);;Python Files (*.py)", options=options)
         text=""
         try:#这个是文本文件的情况
-            with open(path, "r") as f:
+            with open(str(fileName), "r") as f:
                 text=f.read()
         except UnicodeDecodeError:#目前只能处理docx文件
             document = Document(path)
@@ -45,6 +64,7 @@ class AppDemo(QMainWindow):
         self.MainTextBrowser.append(text)
 
 
+
     def printValue(self):
         print("nb")
 
@@ -52,6 +72,7 @@ class AppDemo(QMainWindow):
 if __name__ == '__main__':
     app=QApplication(sys.argv)
     demo=AppDemo()
+    demo.resize(1920,1080)
     demo.show()
     try:
         sys.exit(app.exec_())

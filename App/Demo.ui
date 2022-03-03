@@ -6,20 +6,45 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>999</width>
-    <height>560</height>
+    <width>1080</width>
+    <height>792</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="layoutDirection">
+   <enum>Qt::LeftToRight</enum>
+  </property>
+  <widget class="QTextBrowser" name="MainTextBrowser">
+   <property name="geometry">
+    <rect>
+     <x>6</x>
+     <y>6</y>
+     <width>256</width>
+     <height>501</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>501</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>571</width>
+     <height>16777215</height>
+    </size>
+   </property>
+  </widget>
   <widget class="QPushButton" name="MainBtn">
    <property name="geometry">
     <rect>
-     <x>590</x>
-     <y>370</y>
-     <width>411</width>
-     <height>191</height>
+     <x>583</x>
+     <y>353</y>
+     <width>279</width>
+     <height>85</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -27,16 +52,6 @@
    </property>
    <property name="text">
     <string>PushButton</string>
-   </property>
-  </widget>
-  <widget class="QTextBrowser" name="MainTextBrowser">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>80</y>
-     <width>571</width>
-     <height>501</height>
-    </rect>
    </property>
   </widget>
  </widget>
