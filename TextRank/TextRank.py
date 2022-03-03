@@ -1,16 +1,17 @@
-from PreProcess import PreProcess
-import Util
+from .import PreProcess
+from . import Util
 
 from collections import Counter
 
 
-class TextRank(PreProcess):
+class TextRank(PreProcess.PreProcess):
 
     def __init__(self,
                  text=None, windows=2,
                  use_stopwords=True, stopWordsFilePath=None,
+                 UseFilePath=True,
                  pr_config={'alpha': 0.85, 'max_iter': 100}):
-        super(TextRank, self).__init__(text, use_stopwords, stopWordsFilePath)
+        super(TextRank, self).__init__(text, use_stopwords, stopWordsFilePath,UseFilePath)
 
         self.pr_config = pr_config
         self.windows = windows
@@ -48,8 +49,8 @@ class TextRank(PreProcess):
 
     def get_n_sentences(self, N):
         return self.sorted_sents[:N]
-
-if __name__ == "__main__":
-    #pre_process=PreProcess("test.txt",True,"./cn_stopwords.txt")
-    textRank=TextRank("test.txt",2,True,"./cn_stopwords.txt")
-    print(textRank.get_n_keywords(10))
+#
+# if __name__ == "__main__":
+#     #pre_process=PreProcess("test.txt",True,"./cn_stopwords.txt")
+#     textRank=TextRank("test.txt",2,True,"./cn_stopwords.txt")
+#     print(textRank.get_n_keywords(10))

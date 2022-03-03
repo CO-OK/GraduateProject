@@ -1,7 +1,7 @@
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import csv
-import pandas as pd
+from TextRank import TextRank
 
 def ReadDocx(str):
     document = Document(str)
@@ -57,7 +57,13 @@ def SaveCsv(path,documentInfo):
         row.append(documentInfo[1])
         row.append(documentInfo[0])
         row.append(documentInfo[2])
-        row.append("")
+
+        #关键词
+        textRank = TextRank.TextRank(str(documentInfo[2]), 2, True, "./TextRank/cn_stopwords.txt",False)
+        keyWords=textRank.get_n_keywords(10)#list of tuple
+        #变为字符串
+        keyWordsList=[item[0] for item in keyWords]
+        row.append(" ".join(keyWordsList))
         row.append("")
         row.append("")
         row.append("")
@@ -69,6 +75,4 @@ def SaveCsv(path,documentInfo):
 if __name__ == "__main__":
     doxc = ReadDocx("Data/安监总管三〔2013〕88号.docx")
     SaveCsv("./Data/Res.csv",doxc)
-    with open("test.txt", encoding='utf-8') as f:
-        document = f.read()
-        print("done")
+
