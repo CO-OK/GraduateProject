@@ -1,6 +1,6 @@
 import  sys
-from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QVBoxLayout,QFileDialog
-from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout
+from PyQt5.QtWidgets import QLabel,QHBoxLayout
 from docx import Document
 
 class AppDemo(QWidget):
@@ -24,7 +24,7 @@ class AppDemo(QWidget):
         #选择要处理的文件
         select_action=QAction('打开...',self)
         select_action.setShortcut('O')
-        select_action.triggered.connect(lambda:self.OpenFile("../Data/安监总管三〔2013〕88号.docx"))
+        select_action.triggered.connect(lambda:self.OpenFile())
 
         fileMenu.addAction(select_action)
         fileMenu.addAction(exit_action)
@@ -34,30 +34,64 @@ class AppDemo(QWidget):
         self.MainTextBrowser=textBrowser
         self.MainTextBrowser.setGeometry(0,25,300,995)
 
+        #labels
+        keywordsLabel=QLabel(self)
+        fileNameLabel=QLabel(self)
+        numSectionsLabel=QLabel(self)
+
+        keywordsLabel.setText("关键词:")
+        fileNameLabel.setText("文档名:")
+        numSectionsLabel.setText("章节数:")
+
+        self.keywordsLabel=keywordsLabel
+        self.fileNameLabel=fileNameLabel
+        self.numSectionsLabel=numSectionsLabel
+
+        #与上面labels对应的text browser
+
+        self.keywordsBrowser=QTextBrowser(self)
+        self.fileNameBrowser=QTextBrowser(self)
+        self.numSectionsBrower=QTextBrowser(self)
 
         #布局
-        layout=QVBoxLayout()
-        layout.addWidget(self.menuBar)
-        layout.addWidget(self.MainTextBrowser)
-        self.setLayout(layout)
+        ThirdLayout = QGridLayout()
+        ThirdLayout.addWidget(self.keywordsLabel,0,0,1,1,)
+        ThirdLayout.addWidget(self.fileNameLabel,1,0,1,1)
+        ThirdLayout.addWidget(self.numSectionsLabel,2,0,1,1)
+        ThirdLayout.addWidget(self.keywordsBrowser,0,1,1,1)
+        ThirdLayout.addWidget(self.fileNameBrowser,1,1,1,1)
+        ThirdLayout.addWidget(self.numSectionsBrower,2,1,1,1)
+
+        SecondLayout = QGridLayout()
+        SecondLayout.addWidget(self.MainTextBrowser,0,0,1,3)
+        SecondLayout.addLayout(ThirdLayout,0,4,1,2)
+
+        MainLayout=QVBoxLayout()
+        MainLayout.addWidget(self.menuBar)
+        MainLayout.addLayout(SecondLayout)
+
+
+        
+
+        self.setLayout(MainLayout)
 
 
 
-    def OpenFile(self,path):
+    def OpenFile(self):
         """
-        :param path: 文件路径
-        :return: 目前只返回文本格式
+        打开文件
         """
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "",
-                                                  "All Files (*);;Python Files (*.py)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileNames()", "",
+                                                "All Files (*);;Python Files (*.py)", options=options)
+
         text=""
         try:#这个是文本文件的情况
             with open(str(fileName), "r") as f:
                 text=f.read()
         except UnicodeDecodeError:#目前只能处理docx文件
-            document = Document(path)
+            document = Document(str(fileName))
             for para in document.paragraphs:
                 text+=para.text+"\n"
         self.MainTextBrowser.clear()
@@ -72,7 +106,7 @@ class AppDemo(QWidget):
 if __name__ == '__main__':
     app=QApplication(sys.argv)
     demo=AppDemo()
-    demo.resize(1920,1080)
+    demo.resize(800,600)
     demo.show()
     try:
         sys.exit(app.exec_())
