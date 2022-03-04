@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QLabel,QHBoxLayout
 from docx import Document
 from docx.opc import exceptions
 from TextBrowser import TextBrowser
+from ErrorDialog import ErrorDialog
 
 class AppDemo(QWidget):
     def __init__(self):
@@ -102,6 +103,8 @@ class AppDemo(QWidget):
                         text += para.text + "\n"
                 except (exceptions.PackageNotFoundError):
                     print("wrong")
+                    dia=ErrorDialog("文件格式不正确或者文件不存在！")
+                    dia.exec_()
         self.MainTextBrowser.clear()
         self.MainTextBrowser.append(text)
 
