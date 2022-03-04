@@ -2,6 +2,8 @@ import  sys
 from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout
 from PyQt5.QtWidgets import QLabel,QHBoxLayout
 from docx import Document
+from docx.opc import exceptions
+from TextBrowser import TextBrowser
 
 class AppDemo(QWidget):
     def __init__(self):
@@ -30,7 +32,7 @@ class AppDemo(QWidget):
         fileMenu.addAction(exit_action)
 
         #textbrowser
-        textBrowser=QTextBrowser(self)
+        textBrowser=TextBrowser(self)
         self.MainTextBrowser=textBrowser
         self.MainTextBrowser.setGeometry(0,25,300,995)
 
@@ -71,7 +73,7 @@ class AppDemo(QWidget):
         MainLayout.addLayout(SecondLayout)
 
 
-        
+
 
         self.setLayout(MainLayout)
 
@@ -83,17 +85,23 @@ class AppDemo(QWidget):
         """
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileNames()", "",
-                                                "All Files (*);;Python Files (*.py)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self, "打开文件", "",
+                                                "All Files (*);;Docx Files (*.docx)", options=options)
 
-        text=""
+
+        if(fileName==""):
+            return
+        text = ""
         try:#这个是文本文件的情况
             with open(str(fileName), "r") as f:
                 text=f.read()
-        except UnicodeDecodeError:#目前只能处理docx文件
-            document = Document(str(fileName))
-            for para in document.paragraphs:
-                text+=para.text+"\n"
+        except UnicodeDecodeError:  # 目前只能处理docx文件
+                try:
+                    document = Document(str(fileName))
+                    for para in document.paragraphs:
+                        text += para.text + "\n"
+                except (exceptions.PackageNotFoundError):
+                    print("wrong")
         self.MainTextBrowser.clear()
         self.MainTextBrowser.append(text)
 
