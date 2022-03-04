@@ -1,6 +1,6 @@
 import  sys
-from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout
-from PyQt5.QtWidgets import QLabel,QHBoxLayout
+from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout,QSpacerItem
+from PyQt5.QtWidgets import QLabel,QHBoxLayout,QPushButton,QCheckBox,QSpinBox,QSizePolicy
 from docx import Document
 from docx.opc import exceptions
 from TextBrowser import TextBrowser
@@ -56,9 +56,40 @@ class AppDemo(QWidget):
         self.fileNameBrowser=QTextBrowser(self)
         self.numSectionsBrower=QTextBrowser(self)
 
+        #底部的一些部件
+        #提取按钮
+        self.ExractBtn=QPushButton()
+        self.ExractBtn.setText("提取")
+        self.ExractBtn.setMaximumSize(200,50)
+
+        #是否用停用词
+        self.UseStopwordCheckBox=QCheckBox()
+        self.UseStopwordCheckBox.setText("是否使用停用词")
+
+        #关键词个数设置
+        self.NumKeywordsBox=QSpinBox()
+        self.NumKeywordsBoxLabel=QLabel()
+        self.NumKeywordsBoxLabel.setText("关键词个数")
+
+        #底部部件布局
+        bottomSecondLayout=QGridLayout()
+        bottomSecondLayout.setContentsMargins(10,10,10,10)
+        bottomSecondLayout.addWidget(self.UseStopwordCheckBox,0,5,1,3)
+        bottomSecondLayout.addWidget(self.NumKeywordsBoxLabel,1,5,1,1)
+        bottomSecondLayout.addWidget(self.NumKeywordsBox,1,6,1,2)
+
+        bottomSpacer=QSpacerItem(100,10,QSizePolicy.Fixed)
+        bottomSpacer1 = QSpacerItem(100, 10, QSizePolicy.Fixed)
+
+        bottomLayout=QHBoxLayout()
+        bottomLayout.addWidget(self.ExractBtn)
+        bottomLayout.addSpacerItem(bottomSpacer)
+        bottomLayout.addLayout(bottomSecondLayout)
+        bottomLayout.addSpacerItem(bottomSpacer1)
+
         #布局
         ThirdLayout = QGridLayout()
-        ThirdLayout.addWidget(self.keywordsLabel,0,0,1,1,)
+        ThirdLayout.addWidget(self.keywordsLabel,0,0,1,1)
         ThirdLayout.addWidget(self.fileNameLabel,1,0,1,1)
         ThirdLayout.addWidget(self.numSectionsLabel,2,0,1,1)
         ThirdLayout.addWidget(self.keywordsBrowser,0,1,1,1)
@@ -72,6 +103,7 @@ class AppDemo(QWidget):
         MainLayout=QVBoxLayout()
         MainLayout.addWidget(self.menuBar)
         MainLayout.addLayout(SecondLayout)
+        MainLayout.addLayout(bottomLayout)
 
 
 
