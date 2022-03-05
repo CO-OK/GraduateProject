@@ -155,9 +155,9 @@ class AppDemo(QWidget):
         :return:
         """
         if(self.UseStopwordCheckBox.isChecked()):
-            print("checked")
+            logger.info("CheckBox status: Checked")
         else:
-            print("unchecked")
+            logger.info("CheckBox status: UnChecked")
 
 
 if __name__ == '__main__':

@@ -1,8 +1,6 @@
 from .import PreProcess
 from . import Util
 
-from collections import Counter
-
 
 class TextRank(PreProcess.PreProcess):
 
@@ -23,9 +21,9 @@ class TextRank(PreProcess.PreProcess):
 
         if is_word:
             adj_matrix = Util.word_adj_matrix(self.words_pro,
-                                               self.windows,
-                                               self.word_num,
-                                               self.word_index)
+                                              self.windows,
+                                              self.word_num,
+                                              self.word_index)
         else:
             adj_matrix = Util.sent_adj_matrix(self.words_pro)
 
