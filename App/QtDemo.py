@@ -1,4 +1,6 @@
-import  sys
+import sys
+import logging
+import logging.config
 from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout,QSpacerItem
 from PyQt5.QtWidgets import QLabel,QHBoxLayout,QPushButton,QCheckBox,QSpinBox,QSizePolicy
 from docx import Document
@@ -6,9 +8,14 @@ from docx.opc import exceptions
 from TextBrowser import TextBrowser
 from ErrorDialog import ErrorDialog
 
+logger = logging.getLogger('logger')
+
+
 class AppDemo(QWidget):
     def __init__(self):
         super(AppDemo, self).__init__()
+
+        logger.info("initilize application")
         self.setWindowTitle("SmartAss")
 
         self.fileSystem=QFileSystemModel()
@@ -65,6 +72,7 @@ class AppDemo(QWidget):
         #是否用停用词
         self.UseStopwordCheckBox=QCheckBox()
         self.UseStopwordCheckBox.setText("是否使用停用词")
+        self.UseStopwordCheckBox.stateChanged.connect(self.StopwordCheckBoxChange)
 
         #关键词个数设置
         self.NumKeywordsBox=QSpinBox()
@@ -105,10 +113,9 @@ class AppDemo(QWidget):
         MainLayout.addLayout(SecondLayout)
         MainLayout.addLayout(bottomLayout)
 
-
-
-
         self.setLayout(MainLayout)
+
+        # 初始化预处理器
 
 
 
@@ -120,11 +127,10 @@ class AppDemo(QWidget):
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self, "打开文件", "",
                                                 "All Files (*);;Docx Files (*.docx)", options=options)
-
-
         if(fileName==""):
             return
         text = ""
+        logger.info("open file %s",fileName)
         try:#这个是文本文件的情况
             with open(str(fileName), "r") as f:
                 text=f.read()
@@ -134,19 +140,30 @@ class AppDemo(QWidget):
                     for para in document.paragraphs:
                         text += para.text + "\n"
                 except (exceptions.PackageNotFoundError):
-                    print("wrong")
+                    logger.warning("File format incorrect or not exist")
                     dia=ErrorDialog("文件格式不正确或者文件不存在！")
                     dia.exec_()
+                    return
         self.MainTextBrowser.clear()
         self.MainTextBrowser.append(text)
 
 
 
-    def printValue(self):
-        print("nb")
+    def StopwordCheckBoxChange(self):
+        """
+        停用词列表改变后的的唔做
+        :return:
+        """
+        if(self.UseStopwordCheckBox.isChecked()):
+            print("checked")
+        else:
+            print("unchecked")
 
 
 if __name__ == '__main__':
+    #初始化日志
+    logging.config.fileConfig('./log.conf')
+
     app=QApplication(sys.argv)
     demo=AppDemo()
     demo.resize(800,600)

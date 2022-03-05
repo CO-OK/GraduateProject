@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QDialog,QPushButton,QApplication,QLabel,QGridLayout,QVBoxLayout,QSpacerItem,QSizePolicy,QHBoxLayout
 import sys
+import logging
+logger = logging.getLogger('logger')
 #用来打印错误信息
 class ErrorDialog(QDialog):
     def __init__(self,msg):
@@ -8,6 +10,8 @@ class ErrorDialog(QDialog):
         :param parent:
         """
         super(QDialog, self).__init__()
+
+        logger.info("Initilize ErrorDialog")
 
         self.setMinimumSize(400,200)
 
