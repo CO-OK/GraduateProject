@@ -77,5 +77,5 @@ def SaveCsv(path,documentInfo):
 
 if __name__ == "__main__":
     doxc = ReadDocx("Data/安监总管三〔2013〕88号.docx")
-    SaveCsv("../Data/Res.csv", doxc)
+    SaveCsv("../../Data/Res.csv", doxc)
 
