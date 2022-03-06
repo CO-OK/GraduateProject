@@ -7,6 +7,7 @@ from docx import Document
 from docx.opc import exceptions
 from TextBrowser import TextBrowser
 from ErrorDialog import ErrorDialog
+from DocProcess import DocProcess
 
 logger = logging.getLogger('logger')
 
@@ -39,10 +40,11 @@ class AppDemo(QWidget):
         fileMenu.addAction(select_action)
         fileMenu.addAction(exit_action)
 
-        #textbrowser
+        #Maintextbrowser
         textBrowser=TextBrowser(self)
         self.MainTextBrowser=textBrowser
         self.MainTextBrowser.setGeometry(0,25,300,995)
+        self.MainTextBrowser.HasTextSignal.connect(self.MainTextBrowserDealer)
 
         #labels
         keywordsLabel=QLabel(self)
@@ -68,6 +70,7 @@ class AppDemo(QWidget):
         self.ExractBtn=QPushButton()
         self.ExractBtn.setText("提取")
         self.ExractBtn.setMaximumSize(200,50)
+        self.ExractBtn.clicked.connect(self.Extract)
 
         #是否用停用词
         self.UseStopwordCheckBox=QCheckBox()
@@ -115,7 +118,9 @@ class AppDemo(QWidget):
 
         self.setLayout(MainLayout)
 
-        # 初始化预处理器
+        # 待处理的文件
+        self.FileOpened=False
+        self.FilePath=""
 
 
 
@@ -134,15 +139,20 @@ class AppDemo(QWidget):
         try:#这个是文本文件的情况
             with open(str(fileName), "r") as f:
                 text=f.read()
+                self.FileOpened=True
+                self.FilePath=fileName
         except UnicodeDecodeError:  # 目前只能处理docx文件
                 try:
                     document = Document(str(fileName))
                     for para in document.paragraphs:
                         text += para.text + "\n"
+                    self.FileOpened=True
+                    self.FilePath=fileName
                 except (exceptions.PackageNotFoundError):
                     logger.warning("File format incorrect or not exist")
                     dia=ErrorDialog("文件格式不正确或者文件不存在！")
                     dia.exec_()
+                    self.FileOpened=False
                     return
         self.MainTextBrowser.clear()
         self.MainTextBrowser.append(text)
@@ -158,6 +168,33 @@ class AppDemo(QWidget):
             logger.info("CheckBox status: Checked")
         else:
             logger.info("CheckBox status: UnChecked")
+
+    def Extract(self):
+        """
+        处理文件
+        :return:
+        """
+        if(not self.FileOpened):
+            logger.info("Extract before open any file")
+            dia = ErrorDialog("还未打开文件！")
+            dia.exec_()
+            return
+
+        logger.info("begin extraction...")
+        docProcess=DocProcess.DocxProcess(self.FilePath,use_stopwords=True, stopWordsFilePath="./TextRank/cn_stopwords.txt")
+        documentInfo=docProcess.ReadDocx()
+        self.keywordsBrowser.setText(documentInfo[3])
+
+    def MainTextBrowserDealer(self,string):
+        """
+        处理MainTetxBrowser发来的信号
+        :return:
+        """
+        logger.info("get file name from MainTextBrowser signal")
+        self.FileOpened=True
+        self.FilePath=string
+
+
 
 
 if __name__ == '__main__':

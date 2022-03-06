@@ -5,9 +5,12 @@ import  numpy as np
 class PreProcess:
     def __init__(self, filePath_str, use_stopwords,stopWordsFilePath=None,UseFilePath=True):
         """
-            filePath_str 原文件路径或者是直接需要待处理的字符串
-            use_property: 是否根据词性进行筛选
-            use_stopwords: 是用停用词
+            filePath_str 原文件路径或者是直接需要待处理的字符串，和UseFilePath在一起使用
+                         当UseFilePath为False时filePath_str是文件在内存中的文本
+                         当UseFilePath为True时filePath_str是待处理的文件路径，需要先读取该文件
+            use_stopwords: 是否使用停用词
+            stopWordsFilePath：通用词表路径
+            UseFilePath：看第一条
         """
         if(use_stopwords):
             #加载停用词

@@ -1,14 +1,18 @@
 from PyQt5.QtWidgets import QTextBrowser
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import  *
 from docx import Document
 from docx.opc import exceptions
 import logging
 from ErrorDialog import ErrorDialog
 logger = logging.getLogger('logger')
 class TextBrowser(QTextBrowser):
+    HasTextSignal=pyqtSignal(str)
     def __init__(self,parent):
         super(TextBrowser, self).__init__(parent)
         #可以接受拖过来的文件
         self.setAcceptDrops(True)
+
         logger.info("Initilize TextBorwser")
     def dragEnterEvent(self, event):
         if(event.mimeData().hasText()):
@@ -28,10 +32,10 @@ class TextBrowser(QTextBrowser):
         Need to accept DragMove to catch drop for TextBrowser
         """
         if (event.mimeData().hasText()):
-            logger.info("TextBrowser darg move event accept")
+            # logger.info("TextBrowser darg move event accept")
             event.accept()
         else:
-            logger.info("TextBrowser darg move event ignore")
+            # logger.info("TextBrowser darg move event ignore")
             event.ignore()
 
     def OpenFile(self,fileName):
@@ -50,11 +54,13 @@ class TextBrowser(QTextBrowser):
                     document = Document(str(fileName))
                     for para in document.paragraphs:
                         text += para.text + "\n"
+                    logger.info("emit signal")
+                    self.HasTextSignal.emit(fileName)
                 except (exceptions.PackageNotFoundError):
                     logger.warning("File format incorrect or not exist")
                     dia = ErrorDialog("文件格式不正确或者文件不存在！")
                     dia.exec_()
-                return
+                    return
         self.clear()
         self.setText(text)
 
