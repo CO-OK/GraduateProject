@@ -37,8 +37,14 @@ class AppDemo(QWidget):
         select_action.setShortcut('O')
         select_action.triggered.connect(lambda:self.OpenFile())
 
+        #选择停用词列表
+        useStopwords_action=QAction('选择停用词列表',self)
+        useStopwords_action.setShortcut('Ctrl+S')
+        useStopwords_action.triggered.connect(lambda :self.ChooseStopWords())
+
         fileMenu.addAction(select_action)
         fileMenu.addAction(exit_action)
+        fileMenu.addAction(useStopwords_action)
 
         #Maintextbrowser
         textBrowser=TextBrowser(self)
@@ -76,6 +82,7 @@ class AppDemo(QWidget):
         self.UseStopwordCheckBox=QCheckBox()
         self.UseStopwordCheckBox.setText("是否使用停用词")
         self.UseStopwordCheckBox.stateChanged.connect(self.StopwordCheckBoxChange)
+
 
         #关键词个数设置
         self.NumKeywordsBox=QSpinBox()
@@ -121,7 +128,8 @@ class AppDemo(QWidget):
         # 待处理的文件
         self.FileOpened=False
         self.FilePath=""
-
+        self.documentInfo=[]
+        self.StopWordsPath=""
 
 
     def OpenFile(self):
@@ -130,8 +138,8 @@ class AppDemo(QWidget):
         """
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self, "打开文件", "",
-                                                "All Files (*);;Docx Files (*.docx)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self, "打开word文件", "",
+                                                "Docx Files (*.docx)", options=options)
         if(fileName==""):
             return
         text = ""
@@ -166,8 +174,28 @@ class AppDemo(QWidget):
         """
         if(self.UseStopwordCheckBox.isChecked()):
             logger.info("CheckBox status: Checked")
+            #选取停用词列表
         else:
             logger.info("CheckBox status: UnChecked")
+    def ChooseStopWords(self):
+        """
+        选取停用词列表
+        :return:
+        """
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self, "选取停用词列表", "",
+                                                  "TXT Files (*.txt)", options=options)
+
+        try:#这个是文本文件的情况
+            with open(str(fileName), "r") as f:
+                self.StopWordsPath=fileName
+        except (UnicodeDecodeError):  # 目前只能处理docx文件
+            logger.warning("File format incorrect or not exist")
+            dia = ErrorDialog("文件格式不正确或者文件不存在！")
+            dia.exec_()
+        except FileNotFoundError:
+            return
 
     def Extract(self):
         """
@@ -179,18 +207,26 @@ class AppDemo(QWidget):
             dia = ErrorDialog("还未打开文件！")
             dia.exec_()
             return
-
+        if(self.UseStopwordCheckBox.isChecked() and self.StopWordsPath==""):
+            dia = ErrorDialog("未选择停用词列表，请选择停用词列表或者取消勾选使用停用词")
+            dia.exec_()
+            return
         logger.info("begin extraction...")
-        docProcess=DocProcess.DocxProcess(self.FilePath,use_stopwords=True, stopWordsFilePath="./TextRank/cn_stopwords.txt")
-        documentInfo=docProcess.ReadDocx()
-        self.keywordsBrowser.setText(documentInfo[3])
+        if(self.UseStopwordCheckBox.isChecked()):#有停用词列表
+            docProcess=DocProcess.DocxProcess(self.FilePath,use_stopwords=True, stopWordsFilePath=self.StopWordsPath)
+            self.documentInfo=docProcess.ReadDocx()
+            self.keywordsBrowser.setText(self.documentInfo[3])
+        else:#无停用词列表
+            docProcess = DocProcess.DocxProcess(self.FilePath, use_stopwords=False)
+            self.documentInfo = docProcess.ReadDocx()
+            self.keywordsBrowser.setText(self.documentInfo[3])
 
     def MainTextBrowserDealer(self,string):
         """
         处理MainTetxBrowser发来的信号
         :return:
         """
-        logger.info("get file name from MainTextBrowser signal")
+        logger.info("Get file name from MainTextBrowser signal")
         self.FileOpened=True
         self.FilePath=string
 
@@ -208,4 +244,4 @@ if __name__ == '__main__':
     try:
         sys.exit(app.exec_())
     except SystemExit:
-        print("close window")
+        logger.info("close window")
