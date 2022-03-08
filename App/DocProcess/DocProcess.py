@@ -38,7 +38,7 @@ class DocxProcess:
     def ReadDocx(self):
         """
         :param filePath: docx文件路径
-        :return: 标题、文档编号、文档正文、各个章节组成的列表
+        :return: 标题、文档编号、文档正文、文档关键词、正文文件(路径)、各个章节组成的列表
         """
         document = Document(self.DocxFilePath)
         Title=""#标题
@@ -83,6 +83,7 @@ class DocxProcess:
         final.append(Text)
         keywords=self.GetKeyWords(Text)#关键词
         final.append(keywords)
+        final.append(self.DocxFilePath)
         final.append(Sections)
         return final
 
@@ -105,13 +106,14 @@ class DocxProcess:
             row.append(documentInfo[0])
             row.append(documentInfo[2])
             row.append(documentInfo[3])
+            row.append(documentInfo[4])
             #关键词
             # textRank = TextRank.TextRank(str(documentInfo[2]), 2, True, "./TextRank/cn_stopwords.txt", False)
             # keyWords=textRank.get_n_keywords(10)#list of tuple
             #变为字符串
             # keyWordsList=[item[0] for item in keyWords]
             # row.append(" ".join(keyWordsList))
-            row.append("")
+            # row.append("")
             row.append("")
             row.append("")
             row.append("")

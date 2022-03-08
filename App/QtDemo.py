@@ -25,7 +25,10 @@ class AppDemo(QWidget):
 
         #工具栏
         self.menuBar=QMenuBar(self)
+        #打开文件相关
         fileMenu=self.menuBar.addMenu('文件')
+        #保存文件相关
+        saveMenu=self.menuBar.addMenu('保存')
 
         #退出动作
         exit_action=QAction('退出',self)
@@ -45,6 +48,17 @@ class AppDemo(QWidget):
         fileMenu.addAction(select_action)
         fileMenu.addAction(exit_action)
         fileMenu.addAction(useStopwords_action)
+
+        #保存文件的动作
+        saveMainText_action=QAction('保存文档主体信息',self)
+        saveMainText_action.triggered.connect(lambda: self.SaveMainText())
+
+        saveSectionText_action = QAction('保存文档章节主体信息', self)
+        saveSectionText_action.triggered.connect(lambda: self.SaveSectionText())
+
+        saveMenu.addAction(saveMainText_action)
+        saveMenu.addAction(saveSectionText_action)
+
 
         #Maintextbrowser
         textBrowser=TextBrowser(self)
@@ -130,6 +144,7 @@ class AppDemo(QWidget):
         self.FilePath=""
         self.documentInfo=[]
         self.StopWordsPath=""
+        self.DocProcess=None
 
 
     def OpenFile(self):
@@ -213,12 +228,12 @@ class AppDemo(QWidget):
             return
         logger.info("begin extraction...")
         if(self.UseStopwordCheckBox.isChecked()):#有停用词列表
-            docProcess=DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()),use_stopwords=True, stopWordsFilePath=self.StopWordsPath)
-            self.documentInfo=docProcess.ReadDocx()
+            self.DocProcess=DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()),use_stopwords=True, stopWordsFilePath=self.StopWordsPath)
+            self.documentInfo= self.DocProcess.ReadDocx()
             self.keywordsBrowser.setText(self.documentInfo[3])
         else:#无停用词列表
-            docProcess = DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()), use_stopwords=False)
-            self.documentInfo = docProcess.ReadDocx()
+            self.DocProcess = DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()), use_stopwords=False)
+            self.documentInfo =  self.DocProcess.ReadDocx()
             self.keywordsBrowser.setText(self.documentInfo[3])
 
     def MainTextBrowserDealer(self,string):
@@ -230,6 +245,16 @@ class AppDemo(QWidget):
         self.FileOpened=True
         self.FilePath=string
 
+    def SaveMainText(self):
+
+        file_filter = 'csv File ( *.csv )'
+        saveFileTuple = QFileDialog.getSaveFileName(self,caption="保存文档主体文件",filter=file_filter,)
+        logger.info("Saving main text info to %s",saveFileTuple[0])
+        self.DocProcess.SaveCsv(saveFileTuple[0],self.documentInfo)
+        
+
+    def SaveSectionText(self):
+        pass
 
 
 
