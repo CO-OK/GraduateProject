@@ -213,11 +213,11 @@ class AppDemo(QWidget):
             return
         logger.info("begin extraction...")
         if(self.UseStopwordCheckBox.isChecked()):#有停用词列表
-            docProcess=DocProcess.DocxProcess(self.FilePath,use_stopwords=True, stopWordsFilePath=self.StopWordsPath)
+            docProcess=DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()),use_stopwords=True, stopWordsFilePath=self.StopWordsPath)
             self.documentInfo=docProcess.ReadDocx()
             self.keywordsBrowser.setText(self.documentInfo[3])
         else:#无停用词列表
-            docProcess = DocProcess.DocxProcess(self.FilePath, use_stopwords=False)
+            docProcess = DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()), use_stopwords=False)
             self.documentInfo = docProcess.ReadDocx()
             self.keywordsBrowser.setText(self.documentInfo[3])
 

@@ -68,13 +68,15 @@ class DocxProcess:
             if(i<=Document_num_index):
                 continue
             else:#进入正文
+                if(paragraph.text==""):continue#这段没有文字的话就继续
                 if(paragraph.runs[0].bold):#加粗是章节标题
                     Sections.append(section)
                     section=[]
                     section.append(paragraph.text)
                 else:
                     section.append(paragraph.text)
-
+        if(len(section)!=0):
+            Sections.append(section)
         final=[]
         final.append(Title)
         final.append(Doucment_num)
@@ -119,11 +121,11 @@ class DocxProcess:
 
 
 
-if __name__ == "__main__":
-    doc=DocxProcess("../../Data/安监总管三〔2013〕88号.docx",use_stopwords=True, stopWordsFilePath="../TextRank/cn_stopwords.txt")
-    docinfo=doc.ReadDocx()
-    print(doc.GetKeyWords(docinfo[2]))
-    doc.SaveCsv("test.csv",docinfo)
+# if __name__ == "__main__":
+#     doc=DocxProcess("../../Data/安监总管三〔2010〕186号.docx",use_stopwords=True, stopWordsFilePath="../TextRank/cn_stopwords.txt")
+#     docinfo=doc.ReadDocx()
+#     print(doc.GetKeyWords(docinfo[2]))
+#     doc.SaveCsv("test.csv",docinfo)
 
 
 
