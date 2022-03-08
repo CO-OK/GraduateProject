@@ -236,6 +236,13 @@ class AppDemo(QWidget):
             self.documentInfo =  self.DocProcess.ReadDocx()
             self.keywordsBrowser.setText(self.documentInfo[3])
 
+        #显示章节数:
+        numSections=len(self.documentInfo[5])
+        self.numSectionsBrower.setText(str(numSections))
+
+        #显示文档名称
+        self.fileNameBrowser.setText(self.documentInfo[0])
+
     def MainTextBrowserDealer(self,string):
         """
         处理MainTetxBrowser发来的信号
@@ -246,12 +253,23 @@ class AppDemo(QWidget):
         self.FilePath=string
 
     def SaveMainText(self):
+        """
+        保存文档主体的 csv文件
+        :return:
+        """
+        if(self.DocProcess==None):
+            logger.info("Save file info before extract")
+            dia = ErrorDialog("您还没有处理文件，无法保存！")
+            dia.exec_()
+            return
 
         file_filter = 'csv File ( *.csv )'
         saveFileTuple = QFileDialog.getSaveFileName(self,caption="保存文档主体文件",filter=file_filter,)
-        logger.info("Saving main text info to %s",saveFileTuple[0])
-        self.DocProcess.SaveCsv(saveFileTuple[0],self.documentInfo)
-        
+
+        if(saveFileTuple[0]!=""):
+            logger.info("Saving main text info to %s", saveFileTuple[0])
+            self.DocProcess.SaveCsv(saveFileTuple[0],self.documentInfo)
+
 
     def SaveSectionText(self):
         pass
