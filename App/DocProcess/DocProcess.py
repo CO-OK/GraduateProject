@@ -88,18 +88,24 @@ class DocxProcess:
         return final
 
 
-    def SaveCsv(self,path,documentInfo):
+    def SaveCsv(self,path,documentInfo,exist=False):
         """
         :param path:最后csv文件的保存路径
         :param documentInfo:已经解析好的文档相关信息
         :return:
         """
-        with open(path,'w') as f:
+
+        if(exist):
+            arg='a+'
+        else:
+            arg='w'
+        with open(path,arg) as f:
             #后缀必须是csv才可以被创建
             csv_write = csv.writer(f)
             #先写入标题
-            csv_head = ["文档编号","文档名称","正文","正文关键词","文档正文文件","文档篇章结构信息表","文档附件","文档附件关键词","文档附件文件"]
-            csv_write.writerow(csv_head)
+            if(not exist):
+                csv_head = ["文档编号","文档名称","正文","正文关键词","文档正文文件","文档篇章结构信息表","文档附件","文档附件关键词","文档附件文件"]
+                csv_write.writerow(csv_head)
             #再写入内容
             row=[]
             row.append(documentInfo[1])
@@ -120,13 +126,18 @@ class DocxProcess:
             row.append("")
             csv_write.writerow(row)
 
-    def SaveCsvSection(self,path,documentInfo):
+    def SaveCsvSection(self,path,documentInfo,exist=False):
         # 文档篇章结构信息保存
-        with open(path,'w') as f:
+        if (exist):
+            arg = 'a+'
+        else:
+            arg = 'w'
+        with open(path,arg) as f:
             #后缀必须是csv才可以被创建
             csv_write = csv.writer(f)
-            csv_head = ["文档编号", "文档名称", "文档章节题目","文档章节摘要","文档章节关键词","文档章节号","文档章节内容"]
-            csv_write.writerow(csv_head)
+            if(not exist):
+                csv_head = ["文档编号", "文档名称", "文档章节题目","文档章节摘要","文档章节关键词","文档章节号","文档章节内容"]
+                csv_write.writerow(csv_head)
             # 按文档章节来进行遍历
             Sections = documentInfo[5]
             for i,section in enumerate(Sections):
@@ -155,11 +166,11 @@ class DocxProcess:
 
 
 
-if __name__ == "__main__":
-    doc=DocxProcess("../../Data/安监总管三〔2010〕186号.docx",use_stopwords=True, stopWordsFilePath="../TextRank/cn_stopwords.txt")
-    docinfo=doc.ReadDocx()
-    print(doc.GetKeyWords(docinfo[2]))
-    doc.SaveCsvSection("test.csv",docinfo)
+# if __name__ == "__main__":
+#     doc=DocxProcess("../../Data/安监总管三〔2010〕186号.docx",use_stopwords=True, stopWordsFilePath="../TextRank/cn_stopwords.txt")
+#     docinfo=doc.ReadDocx()
+#     print(doc.GetKeyWords(docinfo[2]))
+#     doc.SaveCsvSection("test.csv",docinfo)
 
 
 

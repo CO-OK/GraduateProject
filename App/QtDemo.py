@@ -2,12 +2,13 @@ import sys
 import logging
 import logging.config
 from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout,QSpacerItem
-from PyQt5.QtWidgets import QLabel,QHBoxLayout,QPushButton,QCheckBox,QSpinBox,QSizePolicy
+from PyQt5.QtWidgets import QLabel,QHBoxLayout,QPushButton,QCheckBox,QSpinBox,QSizePolicy,QMessageBox
 from docx import Document
 from docx.opc import exceptions
 from TextBrowser import TextBrowser
 from ErrorDialog import ErrorDialog
 from DocProcess import DocProcess
+from pathlib import Path
 
 logger = logging.getLogger('logger')
 
@@ -179,7 +180,9 @@ class AppDemo(QWidget):
                     return
         self.MainTextBrowser.clear()
         self.MainTextBrowser.append(text)
-
+        self.fileNameBrowser.clear()
+        self.keywordsBrowser.clear()
+        self.numSectionsBrower.clear()
 
 
     def StopwordCheckBoxChange(self):
@@ -264,17 +267,87 @@ class AppDemo(QWidget):
             return
 
         file_filter = 'csv File ( *.csv )'
-        saveFileTuple = QFileDialog.getSaveFileName(self,caption="保存文档主体文件",filter=file_filter,)
+        filedia = QFileDialog(self, caption="保存文档主体文件", filter=file_filter, )
+        filedia.setLabelText(QFileDialog.Accept,"Save")
+        filedia.fileSelected.connect(self.SaveMain)
+        filedia.exec_()
 
-        if(saveFileTuple[0]!=""):
-            logger.info("Saving main text info to %s", saveFileTuple[0])
-            self.DocProcess.SaveCsv(saveFileTuple[0],self.documentInfo)
+
 
 
     def SaveSectionText(self):
-        pass
+        """
+        保存章节主体的 csv文件
+        :return:
+        """
+        if (self.DocProcess == None):
+            logger.info("Save file info before extract")
+            dia = ErrorDialog("您还没有处理文件，无法保存！")
+            dia.exec_()
+            return
+        file_filter = 'csv File ( *.csv )'
+        filedia=QFileDialog(self, caption="保存章节主体文件", filter=file_filter, )
+        filedia.setLabelText(QFileDialog.Accept, "Save")
+        filedia.fileSelected.connect(self.SaveSection)
+        filedia.exec_()
 
+    def SaveSection(self,s):
+        """
+        保存文档章节主体信息
+        :param s: 文档路径
+        :return:
+        """
+        if(not Path(s).exists()):
+            #不存在直接保存
+            logger.info("Saving file info to %s", s)
+            self.DocProcess.SaveCsvSection(s, self.documentInfo, Path(s).exists())
+        else:
+            #先询问是否要覆盖
+            msg=QMessageBox()
+            msg.setText("文件已经存在")
+            msg.setInformativeText("您可以选择追加或者覆盖")
+            overWriteBtn=msg.addButton("覆盖",QMessageBox.ActionRole)
+            appendBtn=msg.addButton("追加",QMessageBox.ActionRole)
+            cancleBtn=msg.addButton("取消",QMessageBox.ActionRole)
+            msg.exec_()
+            if(msg.clickedButton()==overWriteBtn):
+                logger.info("Overwrite file: %s",s)
+                self.DocProcess.SaveCsvSection(s, self.documentInfo, False)
+            if(msg.clickedButton()==appendBtn):
+                logger.info("Append file: %s",s)
+                self.DocProcess.SaveCsvSection(s, self.documentInfo, True)
+            if(msg.clickedButton()==cancleBtn):
+                # 这里目前只能return 会导致filedialog也关闭，目前没有找到解决方法
+                return
 
+    def SaveMain(self,s):
+        """
+        保存文档主体信息
+        :param s: 文档路径
+        :return:
+        """
+        if(not Path(s).exists()):
+            #不存在直接保存
+            logger.info("Saving file info to %s", s)
+            self.DocProcess.SaveCsv(s, self.documentInfo, Path(s).exists())
+        else:
+            #先询问是否要覆盖
+            msg=QMessageBox()
+            msg.setText("文件已经存在")
+            msg.setInformativeText("您可以选择追加或者覆盖")
+            overWriteBtn=msg.addButton("覆盖",QMessageBox.ActionRole)
+            appendBtn=msg.addButton("追加",QMessageBox.ActionRole)
+            cancleBtn=msg.addButton("取消",QMessageBox.ActionRole)
+            msg.exec_()
+            if(msg.clickedButton()==overWriteBtn):
+                logger.info("Overwrite file: %s",s)
+                self.DocProcess.SaveCsv(s, self.documentInfo, False)
+            if(msg.clickedButton()==appendBtn):
+                logger.info("Append file: %s",s)
+                self.DocProcess.SaveCsv(s, self.documentInfo, True)
+            if(msg.clickedButton()==cancleBtn):
+                # 这里目前只能return 会导致filedialog也关闭，目前没有找到解决方法
+                return
 
 if __name__ == '__main__':
     #初始化日志
