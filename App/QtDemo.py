@@ -1,5 +1,6 @@
 import sys
 import logging
+import  os
 import logging.config
 from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout,QSpacerItem
 from PyQt5.QtWidgets import QLabel,QHBoxLayout,QPushButton,QCheckBox,QSpinBox,QSizePolicy,QMessageBox
@@ -57,8 +58,12 @@ class AppDemo(QWidget):
         saveSectionText_action = QAction('保存文档章节主体信息', self)
         saveSectionText_action.triggered.connect(lambda: self.SaveSectionText())
 
+        saveTable_action=QAction('保存表格',self)
+        saveTable_action.triggered.connect(lambda :self.SaveTable())
+
         saveMenu.addAction(saveMainText_action)
         saveMenu.addAction(saveSectionText_action)
+        saveMenu.addAction(saveTable_action)
 
 
         #Maintextbrowser
@@ -146,6 +151,7 @@ class AppDemo(QWidget):
         self.documentInfo=[]
         self.StopWordsPath=""
         self.DocProcess=None
+        self.HasTable=False
 
 
     def OpenFile(self):
@@ -183,6 +189,7 @@ class AppDemo(QWidget):
         self.fileNameBrowser.clear()
         self.keywordsBrowser.clear()
         self.numSectionsBrower.clear()
+        self.HasTable = False
 
 
     def StopwordCheckBoxChange(self):
@@ -232,11 +239,11 @@ class AppDemo(QWidget):
         logger.info("begin extraction...")
         if(self.UseStopwordCheckBox.isChecked()):#有停用词列表
             self.DocProcess=DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()),use_stopwords=True, stopWordsFilePath=self.StopWordsPath)
-            self.documentInfo= self.DocProcess.ReadDocx()
+            self.documentInfo,hasTable= self.DocProcess.ReadDocx()
             self.keywordsBrowser.setText(self.documentInfo[3])
         else:#无停用词列表
             self.DocProcess = DocProcess.DocxProcess(self.FilePath,numwords=int(self.NumKeywordsBox.text()), use_stopwords=False)
-            self.documentInfo =  self.DocProcess.ReadDocx()
+            self.documentInfo,hasTable =  self.DocProcess.ReadDocx()
             self.keywordsBrowser.setText(self.documentInfo[3])
 
         #显示章节数:
@@ -245,6 +252,15 @@ class AppDemo(QWidget):
 
         #显示文档名称
         self.fileNameBrowser.setText(self.documentInfo[0])
+
+        #如果有表格
+        if(hasTable):
+            self.HasTable=True
+            msg = QMessageBox()
+            msg.setText("这个文件中含有表格")
+            msg.setInformativeText("如果要保存表格请手动保存")
+            msg.exec_()
+
 
     def MainTextBrowserDealer(self,string):
         """
@@ -348,6 +364,75 @@ class AppDemo(QWidget):
             if(msg.clickedButton()==cancleBtn):
                 # 这里目前只能return 会导致filedialog也关闭，目前没有找到解决方法
                 return
+
+    def SaveTable(self):
+        if (self.DocProcess == None):
+            logger.info("Save file info before extract")
+            dia = ErrorDialog("您还没有处理文件，无法保存！")
+            dia.exec_()
+            return
+        if (self.HasTable == False):
+            logger.info("No table can be saved")
+            dia = ErrorDialog("这个文件中不含表格！")
+            dia.exec_()
+            return
+
+        file_filter = 'csv File ( *.csv );;xlsx Files (*.xlsx)'
+        filedia = QFileDialog(self, caption="保存表格", filter=file_filter, )
+        filedia.setLabelText(QFileDialog.Accept, "Save")
+        filedia.fileSelected.connect(self._SaveTable)
+        filedia.exec_()
+
+    def _SaveTable(self,s):
+        if (not Path(s).exists()):
+            # 不存在直接保存
+            logger.info("Saving file info to %s", s)
+            for table in self.DocProcess.tables:
+                self.DocProcess.SaveTable(s, table, False)
+        else:
+            if (os.path.splitext(s)[-1] == ".csv"):
+                # csv文件可以覆盖或者追加
+                # 先询问是否要覆盖
+                msg = QMessageBox()
+                msg.setText("文件已经存在")
+                msg.setInformativeText("您可以选择追加或者覆盖")
+                overWriteBtn = msg.addButton("覆盖", QMessageBox.ActionRole)
+                appendBtn = msg.addButton("追加", QMessageBox.ActionRole)
+                cancleBtn = msg.addButton("取消", QMessageBox.ActionRole)
+                msg.exec_()
+                if (msg.clickedButton() == overWriteBtn):
+                    logger.info("Overwrite table file: %s", s)
+                    for table in self.DocProcess.tables:
+                        self.DocProcess.SaveTable(s, table, False)
+                    return 
+                if (msg.clickedButton() == appendBtn):
+                    logger.info("Append table file: %s", s)
+                    for table in self.DocProcess.tables:
+                        self.DocProcess.SaveTable(s, table, True)
+                    return
+                if (msg.clickedButton() == cancleBtn):
+                    # 这里目前只能return 会导致filedialog也关闭，目前没有找到解决方法
+                    return
+            elif (os.path.splitext(s)[-1] == ".xlsx"):
+                # xlsx文件只能覆盖
+                msg = QMessageBox()
+                msg.setText("文件已经存在")
+                msg.setInformativeText("您确定要覆盖此文件吗")
+                overWriteBtn = msg.addButton("覆盖", QMessageBox.ActionRole)
+                cancleBtn = msg.addButton("取消", QMessageBox.ActionRole)
+                msg.exec_()
+                if (msg.clickedButton() == overWriteBtn):
+                    logger.info("Overwrite table file: %s", s)
+                    for table in self.DocProcess.tables:
+                        self.DocProcess.SaveTable(s, table, False)
+                    return
+                if (msg.clickedButton() == cancleBtn):
+                    # 这里目前只能return 会导致filedialog也关闭，目前没有找到解决方法
+                    return
+
+            logger.error("file format worng!")
+
+
 
 if __name__ == '__main__':
     #初始化日志

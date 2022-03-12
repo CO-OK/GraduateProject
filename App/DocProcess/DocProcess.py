@@ -2,6 +2,8 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import csv
 from App.TextRank import TextRank
+import os
+import xlwt
 
 class DocxProcess:
     def __init__(self,docxFilePath,numwords=10, windows=2,
@@ -21,6 +23,9 @@ class DocxProcess:
         self.UseStopwords=use_stopwords
         self.StopwordsPath=stopWordsFilePath
         self.PrConfig=pr_config
+
+        #表格
+        self.tables=None
 
     def GetKeyWords(self,text):
         """
@@ -53,6 +58,9 @@ class DocxProcess:
                 Document_num_index=i
             else:
                 break
+        #如果标题还为空则自动采用文件名作为标题
+        if(Title==""):
+            Title=os.path.basename(self.DocxFilePath)
         #获取文档编号
         #按照安全总管系列的文章来说标题的最后一部分应该就是文章编号
         Doucment_num=document.paragraphs[Document_num_index].text
@@ -85,7 +93,12 @@ class DocxProcess:
         final.append(keywords)
         final.append(self.DocxFilePath)
         final.append(Sections)
-        return final
+        # 处理表格
+        if(len(document.tables)!=0):#有表格
+            self.tables=document.tables
+            return final,True
+
+        return final,False
 
 
     def SaveCsv(self,path,documentInfo,exist=False):
@@ -162,15 +175,66 @@ class DocxProcess:
                 row.append(text)
                 csv_write.writerow(row)
 
+    def SaveTable(self,path, table, exist=False):
+        """
+        保存表格
+        :param path:保存的文件路径
+        :param table:表格object
+        :param exist:是否追加
+        :return:
+        """
+        if (exist):
+            arg = 'a+'
+        else:
+            arg = 'w'
+        # 根据后缀来选择存储的文件
+        if (os.path.splitext(path)[-1] == ".csv"):  # csv形式
+            rows = []
+            for row in table.rows:
+                row_element = []
+                for cell in row.cells:
+                    row_element.append(cell.text)
+                rows.append(row_element)
+            with open(path, arg) as f:
+                csv_write = csv.writer(f)
+                csv_write.writerows(rows)
+        elif (os.path.splitext(path)[-1] == ".xlsx"):  # excel形式
+            workbook = xlwt.Workbook(encoding='utf-8')
+            worksheet = workbook.add_sheet("table", cell_overwrite_ok=True)
+            for i, row in enumerate(table.rows):
+                for j, cell in enumerate(row.cells):
+                    worksheet.write(i, j, cell.text)
+            # 合并单元格 这部分耗时太长，要改进
+            for col_num, col in enumerate(table.columns):
+                row_num_start = 0
+                row_num_end = row_num_start + 1
+                print(col_num)
+                while (row_num_start < len(col.cells)):
+                    text = table.cell(row_num_start, col_num).text
+                    while (row_num_end < len(col.cells) and text == table.cell(row_num_end, col_num).text):
+                        row_num_end += 1
+                    if (row_num_start + 1 < row_num_end):
+                        worksheet.write_merge(row_num_start, row_num_end - 1, col_num, col_num, text)
+                        row_num_start = row_num_end
+                        row_num_end += 1
+                    else:
+                        row_num_start += 1
+                        row_num_end += 1
+
+            workbook.save(path)
+
 
 
 
 
 # if __name__ == "__main__":
-#     doc=DocxProcess("../../Data/安监总管三〔2010〕186号.docx",use_stopwords=True, stopWordsFilePath="../TextRank/cn_stopwords.txt")
-#     docinfo=doc.ReadDocx()
-#     print(doc.GetKeyWords(docinfo[2]))
-#     doc.SaveCsvSection("test.csv",docinfo)
+#     document = Document("../../Data/test.docx")
+#
+#     SaveTable("../../Data/ttt.xlsx",document.tables[0])
+#
+#     # doc= DocxProcess("../../Data/test.docx")
+#     # doc.ReadDocx()
+#     pass
 
 
 
