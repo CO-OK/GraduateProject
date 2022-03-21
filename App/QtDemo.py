@@ -10,7 +10,7 @@ from TextBrowser import TextBrowser
 from ErrorDialog import ErrorDialog
 from DocProcess import DocProcess
 from pathlib import Path
-
+import lucene
 logger = logging.getLogger('logger')
 
 
@@ -404,7 +404,7 @@ class AppDemo(QWidget):
                     logger.info("Overwrite table file: %s", s)
                     for table in self.DocProcess.tables:
                         self.DocProcess.SaveTable(s, table, False)
-                    return 
+                    return
                 if (msg.clickedButton() == appendBtn):
                     logger.info("Append table file: %s", s)
                     for table in self.DocProcess.tables:

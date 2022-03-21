@@ -52,12 +52,12 @@ class ErrorDialog(QDialog):
 
 
 
-if __name__ == '__main__':
-    app=QApplication(sys.argv)
-    demo=ErrorDialog("888")
-    demo.resize(400,300)
-    demo.show()
-    try:
-        sys.exit(app.exec_())
-    except SystemExit:
-        print("close window")
+# if __name__ == '__main__':
+#     app=QApplication(sys.argv)
+#     demo=ErrorDialog("888")
+#     demo.resize(400,300)
+#     demo.show()
+#     try:
+#         sys.exit(app.exec_())
+#     except SystemExit:
+#         print("close window")
