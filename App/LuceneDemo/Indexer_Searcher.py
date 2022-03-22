@@ -24,34 +24,42 @@ from org.apache.lucene.queryparser.classic import QueryParser
 from org.apache.lucene.analysis import TokenStream
 from java.io import StringReader
 from org.apache.lucene.search.highlight import Highlighter
+from org.apache.lucene.index import LeafReaderContext
 
 import logging
 
 logger = logging.getLogger('logger')
 
 class Indexer(object):
-    def __init__(self,Titles,Texts):
+    def __init__(self):
         """
         初始化Indexer类
         :param Titles:标题列表
         :param Texts:文章正文列表
         """
-        self.Titles=Titles
-        self.Texts=Texts
+        lucene.initVM()
+        # self.Titles=Titles
+        # self.Texts=Texts
+        # self.ids=ids
         logger.info("Init Indexer")
 
-    def index(self,indexDir,config=None):
+    def SectionIndex(self,indexDir,sectionTexts,ids,DocTitle,path,config=None):
         """
-        为文档创建索引
+        为文档的章节创建索引
         :param indexDir:创建后的索引所在文件夹
+        :param sectionTexts:每个章节的文本组成的列表
+        :param ids:章节在文档中对应的编号
+        :param DocTitle:章节所对应的文章的题目
+        :param path:章节所对应的文档的路径
         :param config:IndexWriter的config信息，IndexWriter控制从文档得到索引
+
         :return:
         """
         #配置config
         if(config==None):
 
             IndexerConfig=IndexWriterConfig(SmartChineseAnalyzer())
-            IndexerConfig.setOpenMode(IndexWriterConfig.OpenMode.CREATE)
+            IndexerConfig.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND)
         else:
             IndexerConfig=config
 
@@ -59,16 +67,19 @@ class Indexer(object):
         _indexDir=FSDirectory.open(Paths.get(indexDir))
         _IndexerWriter=IndexWriter(_indexDir, IndexerConfig)
 
-        ids=[1,2,3]
+        # #得到当前已经索引的文件数量
+        # reader = DirectoryReader.open(_indexDir)
+
         #创建索引
         logger.info("Document indexing...")
         nDocsAdded = 0
-        for docNum in range(len(Texts)):
+        for docNum in range(len(sectionTexts)):
             doc = Document()
-            doc.add(IntPoint("id",nDocsAdded))
-            doc.add(StoredField("id",nDocsAdded))
-            doc.add(TextField("title", Titles[docNum], Field.Store.YES))
-            doc.add(TextField("text", Texts[docNum], Field.Store.YES))
+            doc.add(IntPoint("id",int(ids[nDocsAdded])))
+            doc.add(StoredField("id",int(ids[nDocsAdded])))
+            doc.add(TextField("title", DocTitle, Field.Store.YES))
+            doc.add(TextField("text", sectionTexts[docNum], Field.Store.NO))
+            doc.add(TextField("path",path,Field.Store.YES))
             _IndexerWriter.addDocument(doc)
             nDocsAdded += 1
         logger.info("%d documents indexed",nDocsAdded)
@@ -76,8 +87,9 @@ class Indexer(object):
         _IndexerWriter.close()
 
 
-class Seacher(object):
+class Searcher(object):
     def __init__(self):
+        lucene.initVM()
         pass
     def NormalSearch(self,indexDir,queryStr):
         """
@@ -87,25 +99,33 @@ class Seacher(object):
         :return:
         """
         _indexDir=FSDirectory.open(Paths.get(indexDir))
-        reader=DirectoryReader.open(_indexDir)
+
+        # 检查文件夹是否为合法的索引文件夹
+        if(not DirectoryReader.indexExists(_indexDir)):
+            return [],[],1
+
+        reader = DirectoryReader.open(_indexDir)
         searcher=IndexSearcher(reader)
+
         analyzer=SmartChineseAnalyzer()
         parser=QueryParser("text",analyzer)
         query = parser.parse(queryStr)
         docs = searcher.search(query, 10)
+        results=[]
 
+        if(len(docs.scoreDocs)!=0):
+            fields=[f.name() for f in searcher.doc(0).getFields()]
+            # print(fields)
+            for scoreDoc in docs.scoreDocs:
+                res=[]
+                doc = searcher.doc(scoreDoc.doc)
+                res.append(doc.get("id"))
+                res.append(doc.get("title"))
+                res.append(doc.get("path"))
+                results.append(res)
+            return results,fields,0
+        return results,[],2
 
-        for scoreDoc in docs.scoreDocs:
-
-            doc = searcher.doc(scoreDoc.doc)
-            tcontent = doc.get("text")
-            id=doc.get("id")
-            print(tcontent)
-            print(id)
-            # if(tcontent!=None):
-            #     tokenStream = analyzer.tokenStream("text", StringReader(tcontent))
-            #     summary = Highlighter.getBestFragment(tokenStream, tcontent)
-            #     print(summary)
 
 
 
@@ -118,8 +138,10 @@ if __name__ == '__main__':
         "内容3内容啊哈哈哈"
     ]
     lucene.initVM()
-    indexer=Indexer(Titles,Texts)
-    indexer.index("./test.Index")
+    # indexer=Indexer()
+    # indexer.SectionIndex("./test",Texts,[0,1,2],"cnm","../..")
 
-    searcher=Seacher()
-    searcher.NormalSearch("./test.Index","啊哈哈哈")
+    searcher=Searcher()
+    res,field,flag=searcher.NormalSearch("../../Data/index","1")
+
+    pass

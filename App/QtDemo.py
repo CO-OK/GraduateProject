@@ -2,6 +2,7 @@ import sys
 import logging
 import  os
 import logging.config
+from SearchWidget import SearchWidget
 from PyQt5.QtWidgets import QApplication,QWidget,QMainWindow,QAction,QTextBrowser,QMenuBar,QFileSystemModel,QGridLayout,QFileDialog,QVBoxLayout,QSpacerItem
 from PyQt5.QtWidgets import QLabel,QHBoxLayout,QPushButton,QCheckBox,QSpinBox,QSizePolicy,QMessageBox
 from docx import Document
@@ -10,6 +11,7 @@ from TextBrowser import TextBrowser
 from ErrorDialog import ErrorDialog
 from DocProcess import DocProcess
 from pathlib import Path
+from LuceneDemo import Indexer_Searcher
 import lucene
 logger = logging.getLogger('logger')
 
@@ -25,12 +27,26 @@ class AppDemo(QWidget):
         self.fileSystem.setRootPath("/")
 
 
-        #工具栏
+        # 工具栏
         self.menuBar=QMenuBar(self)
         #打开文件相关
         fileMenu=self.menuBar.addMenu('文件')
         #保存文件相关
         saveMenu=self.menuBar.addMenu('保存')
+
+        #创建索引
+        indexMenu=self.menuBar.addMenu("创建索引")
+        #创建索引的动作
+        index_action=QAction('添加普通索引',self)
+        index_action.triggered.connect(lambda:self.CreateNormalIndex())
+        indexMenu.addAction(index_action)
+
+        #按照索引进行查找
+        searchMenu=self.menuBar.addMenu("查找")
+        search_action=QAction('按照索引进行普通查找',self)
+        search_action.triggered.connect(lambda :self.SearchNormal())
+        searchMenu.addAction(search_action)
+
 
         #退出动作
         exit_action=QAction('退出',self)
@@ -91,8 +107,8 @@ class AppDemo(QWidget):
         self.fileNameBrowser=QTextBrowser(self)
         self.numSectionsBrower=QTextBrowser(self)
 
-        #底部的一些部件
-        #提取按钮
+        # 底部的一些部件
+        # 提取按钮
         self.ExractBtn=QPushButton()
         self.ExractBtn.setText("提取")
         self.ExractBtn.setMaximumSize(200,50)
@@ -250,10 +266,10 @@ class AppDemo(QWidget):
         numSections=len(self.documentInfo[5])
         self.numSectionsBrower.setText(str(numSections))
 
-        #显示文档名称
+        # 显示文档名称
         self.fileNameBrowser.setText(self.documentInfo[0])
 
-        #如果有表格
+        # 如果有表格
         if(hasTable):
             self.HasTable=True
             msg = QMessageBox()
@@ -431,6 +447,36 @@ class AppDemo(QWidget):
                     return
 
             logger.error("file format worng!")
+
+    def CreateNormalIndex(self):
+        if (self.DocProcess == None):
+            logger.info("Save file info before extract")
+            dia = ErrorDialog("您还没有处理文件，无法创建索引！")
+            dia.exec_()
+            return
+        # print("666")
+        # dia=QFileDialog(self,caption="选择一个文件夹")
+        # dia.setFileMode(QFileDialog.DirectoryOnly)
+        # dia.exec_()
+        # dia.fileSelected.connect(self._CreateNormalIndex)
+        path=QFileDialog.getExistingDirectory(self, "选择一个文件夹")
+        # 创建索引
+        # lucene.initVM()
+        indexer=Indexer_Searcher.Indexer()
+        l=[]
+        for sec in self.documentInfo[5]:
+            sents=""
+            for sent in sec:
+                sents+=sent
+            l.append(sents)
+        indexer.SectionIndex(path,l,[_ for _ in range(len(self.documentInfo[5]))],self.documentInfo[0],self.documentInfo[4])
+        logger.info("Index finished")
+
+    def SearchNormal(self):
+        # 按照索引进行普通查找
+
+        serachWidget=SearchWidget()
+        serachWidget.exec_()
 
 
 
