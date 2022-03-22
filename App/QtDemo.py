@@ -29,19 +29,19 @@ class AppDemo(QWidget):
 
         # 工具栏
         self.menuBar=QMenuBar(self)
-        #打开文件相关
+        # 打开文件相关
         fileMenu=self.menuBar.addMenu('文件')
-        #保存文件相关
+        # 保存文件相关
         saveMenu=self.menuBar.addMenu('保存')
 
-        #创建索引
+        # 创建索引
         indexMenu=self.menuBar.addMenu("创建索引")
-        #创建索引的动作
+        # 创建索引的动作
         index_action=QAction('添加普通索引',self)
         index_action.triggered.connect(lambda:self.CreateNormalIndex())
         indexMenu.addAction(index_action)
 
-        #按照索引进行查找
+        # 按照索引进行查找
         searchMenu=self.menuBar.addMenu("查找")
         search_action=QAction('按照索引进行普通查找',self)
         search_action.triggered.connect(lambda :self.SearchNormal())

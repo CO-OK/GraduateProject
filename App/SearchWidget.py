@@ -1,11 +1,15 @@
 from PyQt5.QtWidgets import *
 import sys
 import ErrorDialog
+import logging
+
 from LuceneDemo.Indexer_Searcher import Searcher
 from org.apache.lucene.index import IndexNotFoundException
+logger = logging.getLogger('logger')
 class SearchWidget(QDialog):
     def __init__(self):
         super().__init__()
+        logger.info("Init SearchWidget")
         self.title = '查找'
         # self.left = 0
         # self.top = 0
@@ -14,7 +18,7 @@ class SearchWidget(QDialog):
 
         self.setWindowTitle(self.title)
         # self.setGeometry(self.left, self.top, self.width, self.height)
-
+        self.resize(800,600)
         # self.createTable()
         self.tableWidget = QTableWidget()
 
@@ -83,8 +87,11 @@ class SearchWidget(QDialog):
         选择要查找的索引文件
         :return:
         """
+
         self.indexPath = QFileDialog.getExistingDirectory(self, "选择索引文件夹")
+
         self.currentIndex.setText(self.indexPath)
+        logger.info("Searcher choose index directory %s",self.indexPath )
 
     def SearchProcess(self):
         """
@@ -92,12 +99,14 @@ class SearchWidget(QDialog):
         :return:
         """
         if(self.indexPath==""):
+            logger.error("Index directory path is empty")
             dia=ErrorDialog.ErrorDialog("没有选择索引路径！")
             dia.exec_()
             return
 
         searcher=Searcher()
         if(self.textEdit.text()==""):
+            logger.error("Keyword is empty")
             dia = ErrorDialog.ErrorDialog("关键词不能为空！")
             dia.exec_()
             return
@@ -114,11 +123,13 @@ class SearchWidget(QDialog):
                     self.tableWidget.setItem(i+1,j,QTableWidgetItem(subItem))
         elif(flag==1):
             # 索引文件错误
+            logger.error("Index directory format wrong")
             dia = ErrorDialog.ErrorDialog("请选择有效的索引文件夹！")
             dia.exec_()
 
         else:
             # 没有找到
+            logger.info("Search not match")
             dia = ErrorDialog.ErrorDialog("没有找到相关结果")
             dia.exec_()
 

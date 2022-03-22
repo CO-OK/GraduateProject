@@ -98,6 +98,7 @@ class Searcher(object):
         :param queryStr:用户的查找输入
         :return:
         """
+        logger.info("Searching...")
         _indexDir=FSDirectory.open(Paths.get(indexDir))
 
         # 检查文件夹是否为合法的索引文件夹
@@ -130,18 +131,18 @@ class Searcher(object):
 
 
 
-if __name__ == '__main__':
-    Titles=["标题1","标题2","标题3"]
-    Texts=[
-        "内容1内容啊哈哈哈",
-        "内容2内容啊哈哈哈",
-        "内容3内容啊哈哈哈"
-    ]
-    lucene.initVM()
-    # indexer=Indexer()
-    # indexer.SectionIndex("./test",Texts,[0,1,2],"cnm","../..")
-
-    searcher=Searcher()
-    res,field,flag=searcher.NormalSearch("../../Data/index","1")
-
-    pass
+# if __name__ == '__main__':
+#     Titles=["标题1","标题2","标题3"]
+#     Texts=[
+#         "内容1内容啊哈哈哈",
+#         "内容2内容啊哈哈哈",
+#         "内容3内容啊哈哈哈"
+#     ]
+#     lucene.initVM()
+#     # indexer=Indexer()
+#     # indexer.SectionIndex("./test",Texts,[0,1,2],"cnm","../..")
+#
+#     searcher=Searcher()
+#     res,field,flag=searcher.NormalSearch("../../Data/index","1")
+#
+#     pass
