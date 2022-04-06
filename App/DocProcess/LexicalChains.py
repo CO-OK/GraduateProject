@@ -19,7 +19,6 @@ import jieba
 
 
 class Summarizer:
-
     """
     Class for summarize the text:
         Input:
@@ -32,31 +31,31 @@ class Summarizer:
 
     def __init__(self, threshold_min=0.1, threshold_max=0.9):
         self.threshold_min = threshold_min
-        self.threshold_max = threshold_max 
+        self.threshold_max = threshold_max
         self._stopwords = set(stopwords.words('english') + list(punctuation))
-        
-        
+
     """ 
       Compute the frequency of each of word taking into account the 
       lexical chain and the frequency of other words in the same chain. 
       Normalize and filter the frequencies. 
     """
+
     def return_frequencies(self, words, lexical_chain):
         frequencies = defaultdict(int)
         for word in words:
             for w in word:
-                if (w not in self._stopwords and len(word)>1):
+                if (w not in self._stopwords and len(word) > 1):
                     flag = 0
                     for i in lexical_chain:
                         if w in list(i.keys()):
                             frequencies[w] = sum(list(i.values()))
                             flag = 1
                             break
-                    if flag == 0: 
+                    if flag == 0:
                         frequencies[w] += 1
         m = float(max(frequencies.values()))
         for w in list(frequencies.keys()):
-            frequencies[w] = frequencies[w]/m
+            frequencies[w] = frequencies[w] / m
             if frequencies[w] >= self.threshold_max or frequencies[w] <= self.threshold_min:
                 del frequencies[w]
         return frequencies
@@ -65,6 +64,7 @@ class Summarizer:
       Compute the final summarize using a heap for the most importante 
       sentence and return the n best sentence. 
     """
+
     def summarize(self, sentence, lexical_chain, n):
         assert n <= len(sentence)
         # word_sentence = [word_tokenize(s.lower()) for s in sentence]
@@ -72,11 +72,11 @@ class Summarizer:
         self.frequencies = self.return_frequencies(word_sentence, lexical_chain)
         ranking = defaultdict(int)
 
-        for i,sent in enumerate(word_sentence):
+        for i, sent in enumerate(word_sentence):
             for word in sent:
                 if word in self.frequencies:
                     ranking[i] += self.frequencies[word]
-                    idx = self.rank(ranking, n) 
+                    idx = self.rank(ranking, n)
         final_index = sorted(idx)
         return [sentence[j] for j in final_index]
 
@@ -85,17 +85,18 @@ class Summarizer:
         frequencie of each word in the sentence and the lexical chain. 
         Return the n best sentence. 
     """
+
     def rank(self, ranking, n):
         return nlargest(n, ranking, key=ranking.get)
 
 
 class LexicalChain:
     # 封装词汇链相关操作
-    def __init__(self,input_text):
+    def __init__(self, input_text):
         # 原始文本
-        self.original_text=input_text
+        self.original_text = input_text
 
-    def chinese_sent_tokenize(self,text):
+    def chinese_sent_tokenize(self, text):
         """
         中文分句,返回text分句后的结果
         text: 一段文本
@@ -107,7 +108,7 @@ class LexicalChain:
             sents.append(sent)
         return sents
 
-    def chinese_word_tokenize(self,str):
+    def chinese_word_tokenize(self, str):
         """
         中文分词
         str：输入的一句话
@@ -129,7 +130,7 @@ class LexicalChain:
         # 只返回长度大于1的名词
         return [w.word for w in document_cut if (len(w.word) > 1 and w.flag in position)]
 
-    def relation_list(self,nouns):
+    def relation_list(self, nouns):
         """
         为每一个词创造词典，然后词典中存储与这个词有关的一系列词汇
         """
@@ -152,7 +153,7 @@ class LexicalChain:
             relation_list[nouns[k]].append(relation)
         return relation_list
 
-    def check_relation(self,word, l):
+    def check_relation(self, word, l):
         """
         检查word的同义词、上位词、下位词是否在l中
         """
@@ -168,7 +169,7 @@ class LexicalChain:
                     return True
         return False
 
-    def create_lexical_chain(self,nouns, relation_list):
+    def create_lexical_chain(self, nouns, relation_list):
         """
         根据阈值选择性构造词汇链
         Compute the lexical chain between each noun and their relation and
@@ -214,7 +215,7 @@ class LexicalChain:
                 flag = 1
         return lexical
 
-    def prune(self,lexical):
+    def prune(self, lexical):
         """
         过滤词汇链，删除只出现一次的
         Prune the lexical chain deleting the chains that are more weak with
@@ -244,7 +245,7 @@ class LexicalChain:
         # 建立最初的词汇链
         self.lexical = self.create_lexical_chain(self.nouns, self.relation)
         # 返回最终结果
-        self.final_lexical= self.prune(self.lexical)
+        self.final_lexical = self.prune(self.lexical)
         return self.final_lexical
 
 # if __name__ == "__main__":

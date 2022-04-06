@@ -4,7 +4,7 @@ import csv
 from App.TextRank import TextRank
 import os
 import xlwt
-
+import LexicalChains
 class DocxProcess:
     def __init__(self,docxFilePath,numwords=10, windows=2,
                  use_stopwords=False, stopWordsFilePath=None,
