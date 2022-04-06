@@ -25,6 +25,8 @@ from org.apache.lucene.analysis import TokenStream
 from java.io import StringReader
 from org.apache.lucene.search.highlight import Highlighter
 from org.apache.lucene.index import LeafReaderContext
+from org.apache.lucene.index import Term
+from org.apache.lucene.search import FuzzyQuery
 
 import logging
 
@@ -91,11 +93,12 @@ class Searcher(object):
     def __init__(self):
         lucene.initVM()
         pass
-    def NormalSearch(self,indexDir,queryStr):
+    def NormalSearch(self,indexDir,queryStr,exact=False):
         """
         使用索引进行常规查找
         :param indexDir:索引所在文件路径
         :param queryStr:用户的查找输入
+        :param 是否开启精确查找
         :return:
         """
         logger.info("Searching...")
@@ -109,8 +112,15 @@ class Searcher(object):
         searcher=IndexSearcher(reader)
 
         analyzer=SmartChineseAnalyzer()
-        parser=QueryParser("text",analyzer)
-        query = parser.parse(queryStr)
+        parser = QueryParser("text", analyzer)
+        if(exact):
+            # 精确查找
+            query = parser.parse(queryStr)
+        else:
+            # 模糊查找
+            query = FuzzyQuery(Term("text",queryStr))
+
+        # 搜索前十个
         docs = searcher.search(query, 10)
         results=[]
 
@@ -131,18 +141,18 @@ class Searcher(object):
 
 
 
-# if __name__ == '__main__':
-#     Titles=["标题1","标题2","标题3"]
-#     Texts=[
-#         "内容1内容啊哈哈哈",
-#         "内容2内容啊哈哈哈",
-#         "内容3内容啊哈哈哈"
-#     ]
-#     lucene.initVM()
-#     # indexer=Indexer()
-#     # indexer.SectionIndex("./test",Texts,[0,1,2],"cnm","../..")
-#
-#     searcher=Searcher()
-#     res,field,flag=searcher.NormalSearch("../../Data/index","1")
-#
-#     pass
+if __name__ == '__main__':
+    Titles=["标题1","标题2","标题3"]
+    Texts=[
+        "内容1内容啊哈哈哈",
+        "内容2内容啊哈哈哈",
+        "内容3内容啊哈哈哈"
+    ]
+    lucene.initVM()
+    # indexer=Indexer()
+    # indexer.SectionIndex("./test",Texts,[0,1,2],"cnm","../..")
+
+    searcher=Searcher()
+    res,field,flag=searcher.NormalSearch("../../Data/index","承包商",True)
+
+    pass

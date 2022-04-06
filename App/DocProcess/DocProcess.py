@@ -208,7 +208,7 @@ class DocxProcess:
             for col_num, col in enumerate(table.columns):
                 row_num_start = 0
                 row_num_end = row_num_start + 1
-                print(col_num)
+                # print(col_num)
                 while (row_num_start < len(col.cells)):
                     text = table.cell(row_num_start, col_num).text
                     while (row_num_end < len(col.cells) and text == table.cell(row_num_end, col_num).text):
