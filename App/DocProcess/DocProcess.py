@@ -1,10 +1,11 @@
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import csv
-from App.TextRank import TextRank
+# from . import TextRank
+from Code.App.TextRank import TextRank
 import os
 import xlwt
-import LexicalChains
+from Code.App.DocProcess.LexicalChains import Summarizer,LexicalChain
 class DocxProcess:
     def __init__(self,docxFilePath,numwords=10, windows=2,
                  use_stopwords=False, stopWordsFilePath=None,
@@ -117,7 +118,7 @@ class DocxProcess:
             csv_write = csv.writer(f)
             #先写入标题
             if(not exist):
-                csv_head = ["文档编号","文档名称","正文","正文关键词","文档正文文件","文档篇章结构信息表","文档附件","文档附件关键词","文档附件文件"]
+                csv_head = ["文档编号","文档名称","正文","正文关键词","文档正文文件","文档章节数","文档附件","文档附件关键词","文档附件文件"]
                 csv_write.writerow(csv_head)
             #再写入内容
             row=[]
@@ -133,7 +134,7 @@ class DocxProcess:
             # keyWordsList=[item[0] for item in keyWords]
             # row.append(" ".join(keyWordsList))
             # row.append("")
-            row.append("")
+            row.append(len(documentInfo[5]))
             row.append("")
             row.append("")
             row.append("")
@@ -162,12 +163,25 @@ class DocxProcess:
                 # 文档章节题目 section的第一个
                 row.append(section[0])
                 # 摘要暂时为空
-                row.append("")
+                # row.append("")
                 # 章节关键词
                 text=""
                 for sentence in section:
                     text+=sentence
                 keywords=self.GetKeyWords(text)
+                # 通过text获取摘要
+                chain=LexicalChain(text)
+                fs =Summarizer()
+                final_chain=chain.get_final_chain()
+                summary=""
+                if len(chain.sentence) >= 5:
+                    n = 5
+                else:
+                    n = 2
+                for s in fs.summarize(chain.sentence, final_chain, n):
+                    print(s)
+                    summary+=s+'\n'
+                row.append(summary)
                 row.append(keywords)
                 #章节号
                 row.append(str(i))

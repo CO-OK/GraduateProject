@@ -95,6 +95,18 @@ class LexicalChain:
     def __init__(self, input_text):
         # 原始文本
         self.original_text = input_text
+        # 分句
+        self.sentence = None
+        # 分词
+        self.tokens = None
+        # 得到所有名词,展平
+        self.nouns = None
+        # 创建语义关系
+        self.relation = None
+        # 建立最初的词汇链
+        self.lexical = None
+        # 返回最终结果
+        self.final_lexical = None
 
     def chinese_sent_tokenize(self, text):
         """
