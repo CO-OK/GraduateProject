@@ -2,3 +2,5 @@
 App/TextRank/__pycache__/
 App/__pycache__
 Data
+pkg
+__pycache__

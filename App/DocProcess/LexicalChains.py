@@ -20,73 +20,82 @@ import jieba
 
 class Summarizer:
     """
-    Class for summarize the text:
-        Input:
-            text: The input text that we have read.
-            lexical_chain: The final lexical chain with the most important
-            n: The number of sentence we want our summary to have.
-        Output:
-            summary: the n best sentence.
+    Input:
+        text: 要处理文本
+        lexical_chain: 构造好的词汇链
+        n: 选取前n个结果
+    Output:
+        summary: 排序以后的前n个句子
     """
 
     def __init__(self, threshold_min=0.1, threshold_max=0.9):
         self.threshold_min = threshold_min
         self.threshold_max = threshold_max
-        self._stopwords = set(stopwords.words('english') + list(punctuation))
+        self._stopwords = set()#暂时没加载停用词列表
 
-    """ 
-      Compute the frequency of each of word taking into account the 
-      lexical chain and the frequency of other words in the same chain. 
-      Normalize and filter the frequencies. 
-    """
+
 
     def return_frequencies(self, words, lexical_chain):
+        """
+        依据词汇链对每一个句子中的词做一个词频字典，为后面排序做准备
+        words:每个句子分词后的列表
+        lexical_chain:词汇链
+        """
         frequencies = defaultdict(int)
         for word in words:
             for w in word:
+                # 词长度大于1且不在停用词列表
                 if (w not in self._stopwords and len(word) > 1):
                     flag = 0
                     for i in lexical_chain:
+                        # 如果在词汇链中就用词汇链的词频
                         if w in list(i.keys()):
                             frequencies[w] = sum(list(i.values()))
                             flag = 1
                             break
                     if flag == 0:
+                        # 不在则加1
                         frequencies[w] += 1
         m = float(max(frequencies.values()))
         for w in list(frequencies.keys()):
+            # 正则化
             frequencies[w] = frequencies[w] / m
+            # 删除不要的数据
             if frequencies[w] >= self.threshold_max or frequencies[w] <= self.threshold_min:
                 del frequencies[w]
         return frequencies
 
-    """
-      Compute the final summarize using a heap for the most importante 
-      sentence and return the n best sentence. 
-    """
+
 
     def summarize(self, sentence, lexical_chain, n):
+        """
+        首先做一个排序，返回重要性最高的前n个句子
+        sentence:section中的句子集合
+        lexical_chain:词汇链
+        n:前n个句子
+        """
         assert n <= len(sentence)
         # word_sentence = [word_tokenize(s.lower()) for s in sentence]
         word_sentence = [list(jieba.cut(sent)) for sent in sentence]
         self.frequencies = self.return_frequencies(word_sentence, lexical_chain)
         ranking = defaultdict(int)
 
+        # 排序，找出前n个句子
         for i, sent in enumerate(word_sentence):
             for word in sent:
                 if word in self.frequencies:
                     ranking[i] += self.frequencies[word]
                     idx = self.rank(ranking, n)
+        # 最后前n位的索引
         final_index = sorted(idx)
         return [sentence[j] for j in final_index]
 
-    """
-        Create a heap with the best sentence taking into account the 
-        frequencie of each word in the sentence and the lexical chain. 
-        Return the n best sentence. 
-    """
+
 
     def rank(self, ranking, n):
+        """
+        找到前n大的值
+        """
         return nlargest(n, ranking, key=ranking.get)
 
 
@@ -147,7 +156,7 @@ class LexicalChain:
         为每一个词创造词典，然后词典中存储与这个词有关的一系列词汇
         """
         relation_list = defaultdict(list)
-
+        
         for k in range(len(nouns)):
             relation = []
             # 同义词集合
@@ -183,9 +192,9 @@ class LexicalChain:
 
     def create_lexical_chain(self, nouns, relation_list):
         """
-        根据阈值选择性构造词汇链
-        Compute the lexical chain between each noun and their relation and
-        apply a threshold of similarity between each word.
+        根据阈值以及词义相似关系选择性构造词汇链
+        nouns:词汇列表
+        relation_list:关系映射字典
         """
         lexical = []
         threshold = 0.5
@@ -230,8 +239,6 @@ class LexicalChain:
     def prune(self, lexical):
         """
         过滤词汇链，删除只出现一次的
-        Prune the lexical chain deleting the chains that are more weak with
-        just a few words.
         """
         final_chain = []
         while lexical:
@@ -260,49 +267,49 @@ class LexicalChain:
         self.final_lexical = self.prune(self.lexical)
         return self.final_lexical
 
-# if __name__ == "__main__":
-#
-#     """
-#     Read the .txt in this folder.
-#     """
-#     in_txt = join(dirname(abspath(getsourcefile(lambda:0))) , "input_chinese.txt")
-#     with open(in_txt, "r", encoding="utf-8" ) as f:
-#         input_txt = f.read()
-#         f.close()
-#
-#     """
-#     Return the nouns of the entire text.
-#     """
-#
-#
-#     # # 分句
-#     # sentence = chinese_sent_tokenize(input_txt)
-#     #
-#     # # 分词
-#     # tokens = [chinese_word_tokenize(sent) for sent in sentence]
-#     #
-#     # # 得到所有名词并且去重
-#     # nouns =[word for token in tokens for word in token]
-#     # relation = relation_list(nouns)
-#     # lexical = create_lexical_chain(nouns, relation)
-#     chain=LexicalChain(input_txt)
-#     final_chain = chain.get_final_chain()
-#     """
-#     Print the lexical chain.
-#     """
-#     for i in range(len(final_chain)):
-#         print("Chain "+ str(i+1) + " : " + str(final_chain[i]))
-#
-#     """
-#     Summarize the text taking into account the lexical chain and the number
-#     of sentence we want in the final summary.
-#     """
-#     if len(chain.sentence) >= 5:
-#         n = 5
-#     else:
-#         n = 2
-#     fs = Summarizer()
-#     for s in fs.summarize(chain.sentence, final_chain,n):
-#         print(s)
-#         print('----------------------------------------')
+if __name__ == "__main__":
+
+    """
+    Read the .txt in this folder.
+    """
+    in_txt = join(dirname(abspath(getsourcefile(lambda:0))) , "chinese_input.txt")
+    with open(in_txt, "r", encoding="utf-8" ) as f:
+        input_txt = f.read()
+        f.close()
+
+    """
+    Return the nouns of the entire text.
+    """
+
+
+    # # 分句
+    # sentence = chinese_sent_tokenize(input_txt)
+    #
+    # # 分词
+    # tokens = [chinese_word_tokenize(sent) for sent in sentence]
+    #
+    # # 得到所有名词并且去重
+    # nouns =[word for token in tokens for word in token]
+    # relation = relation_list(nouns)
+    # lexical = create_lexical_chain(nouns, relation)
+    chain=LexicalChain(input_txt)
+    final_chain = chain.get_final_chain()
+    """
+    Print the lexical chain.
+    """
+    for i in range(len(final_chain)):
+        print("Chain "+ str(i+1) + " : " + str(final_chain[i]))
+
+    """
+    Summarize the text taking into account the lexical chain and the number
+    of sentence we want in the final summary.
+    """
+    if len(chain.sentence) >= 5:
+        n = 5
+    else:
+        n = 2
+    fs = Summarizer()
+    for s in fs.summarize(chain.sentence, final_chain,n):
+        print(s)
+        print('----------------------------------------')
 
