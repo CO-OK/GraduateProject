@@ -30,11 +30,27 @@ pacman -S wget --noconfirm
 # libgl required by PyQt5
 pacman -S libgl --noconfirm
 
-#install make
+# install make
 pacman -S make --noconfirm
 
+# install libqtxdg required by qt-gui
+pacman -S libqtxdg --noconfirm
+
+# config chinese
+echo "zh_CN.UTF-8 UTF-8" >> /etc/locale.gen
+locale-gen
+mkdir /usr/share/fonts/
+pacman -S wqy-zenhei --noconfirm
+cd
+
+touch .xinitrc 
+echo "export LANG=zh_CN.UTF-8" >> .xinitrc
+echo "export LANGUAGE=zh_CN:en_US" >> .xinitrc
+
+
 # install python
-read -s -n1 -p "按任意键继续 ... "
+# read -s -n1 -p "按任意键继续 ... "
+sleep 3
 cd /app/python38
 tar -zxvf Python-3.8.0rc1.tgz
 cd Python-3.8.0rc1
@@ -44,15 +60,31 @@ cd ..
 rm -rf Python-3.8.0rc1 Python-3.8.0rc1.tgz
 echo 'export PATH=/app/python38/bin:$PATH' >> /etc/profile
 source /etc/profile
-pip3.8 install --upgrade pip
+pip3.8 install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple
 # install PyQt5
-read -s -n1 -p "按任意键继续 ... "
+# read -s -n1 -p "按任意键继续 ... "
+sleep 3
 cd /app
-pip3.8 install PyQt5
+pip3.8 install PyQt5 -i https://pypi.tuna.tsinghua.edu.cn/simple
+# python docx
+pip3.8 install docx -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3.8 install python-docx -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# jieba
+pip3.8 install jieba -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# numpy
+pip3.8 install numpy -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# xlwt
+pip3.8 install xlwt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# nltk
+pip3.8 install nltk -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # install java env
-read -s -n1 -p "按任意键继续 ... "
-
+# read -s -n1 -p "按任意键继续 ... "
+sleep 3
 cd /app/java
 # mkdir java
 # cd java
@@ -72,12 +104,15 @@ source /etc/profile
 echo "export PATH=${JAVA_HOME}/bin:${PATH}" >> /etc/profile
 source /etc/profile
 
-
+# read -s -n1 -p "按任意键继续 ... "
+sleep 3
 # install jcc
 cd /app/pylucene-8.9.0/jcc
 python3.8 setup.py build
 python3.8 setup.py install
 
+# read -s -n1 -p "按任意键继续 ... "
+sleep 3
 # install ANT
 cd /app/ant
 tar -zxvf ant.tar.gz
@@ -88,9 +123,27 @@ ant_path=`pwd`
 echo "export PATH=${ant_path}:${PATH}" >> /etc/profile
 source /etc/profile
 
+# read -s -n1 -p "按任意键继续 ... "
 # install pylucene
+cd ~
+mkdir .ant 
+cd .ant
+mkdir lib
+cd lib
+cp /app/pkg/ivy-2.4.0.jar .
 
+cd ~
+cp -r /app/pkg/.ivy2 .
 cd /app/pylucene-8.9.0
 make
 make test
 make install
+sleep 3
+# export python path
+
+echo "export PYTHONPATH=${PYTHONPATH}:"/app"" >> /etc/profile
+source /etc/profile
+cd /app/Code
+touch __init__.py
+cd App
+python3.8 QtDemo.py

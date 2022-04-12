@@ -10,8 +10,9 @@ RUN set -x\
     && mkdir java\
     && mkdir ant\
     && cd /app\
-    && mkdir pkg
-COPY ./App /app/App 
+    && mkdir pkg\
+    && cd /app
+COPY ./App /app/Code/App 
 COPY ./install.sh /app
 # COPY ./pacman.conf /etc/pacman.conf
 # COPY ./mirrorlist /etc/pacman.d/mirrorlist
@@ -22,3 +23,5 @@ COPY ./install.sh /app
 # COPY ./pkg/ant.tar.gz /app/ant
 
 COPY ./pkg /app/pkg
+
+ENV LANG C.UTF-8
