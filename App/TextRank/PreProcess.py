@@ -2,7 +2,7 @@ import jieba
 import re
 
 import  numpy as np
-class PreProcess:
+class PreProcess():
     def __init__(self, filePath_str, use_stopwords,stopWordsFilePath=None,UseFilePath=True):
         """
             filePath_str 原文件路径或者是直接需要待处理的字符串，和UseFilePath在一起使用

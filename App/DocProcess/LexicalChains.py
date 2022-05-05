@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-@author: AnaMaria
-"""
 import nltk
 import string
 import jieba.posseg as pseg

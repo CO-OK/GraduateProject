@@ -17,12 +17,13 @@ cp Python-3.8.0rc1.tgz /app/python38
 cp -r pylucene-8.9.0 /app
 cp java-jdk.tar.gz /app/java
 cp ant.tar.gz /app/ant
-cp pacman.conf /etc/pacman.conf
-cp mirrorlist /etc/pacman.d/mirrorlist
+# cp pacman.conf /etc/pacman.conf
+# cp mirrorlist /etc/pacman.d/mirrorlist
 # chagne mirror
+
 sudo pacman-mirrors -c China -m rank
 pacman-mirrors -g
-pacman -Sy
+pacman -Syu --noconfirm
 
 # install wget
 pacman -S wget --noconfirm
